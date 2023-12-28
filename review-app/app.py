@@ -11,9 +11,13 @@ import questions
 
 try:
     import MySQLdb
+    print("Using MySQLdb")
 except ImportError:
     import pymysql
+    print("Using pymysql")
     pymysql.install_as_MySQLdb()
+    import MySQLdb
+    print("(installed pymysql as MySQLdb)")
 
 from flask import Flask, request, render_template, redirect, url_for, session, g
 from werkzeug.exceptions import NotFound, Forbidden
@@ -50,6 +54,18 @@ def close_connection(exception):
         db.close()
 
 
+def get_remote_user(request):
+    # since it doesn't "Just Work"
+    user = request.remote_user
+    if user is None:
+        # I think this works since it should only be coming from the logged in user as added by the .htaccess, and I tried passing X-Whom with another username while logged and it didn't work
+        # But it might be wrong because I'm sure logging in 'just worked' before Dec 2023.
+        user = request.headers.get("X-Whom")
+        print("X-Whom:", user)
+
+    return user
+
+
 def can_submit_review(user):
     ## TODO: check user is allowed to leave a review (is current student/was petrean)
     return True
@@ -64,6 +80,7 @@ def is_admin(user):
     admins = [i[0] for i in c.fetchall()]
 
     print("admins:", admins)
+    print("vs", user)
 
     return user in admins or DEBUG
 
@@ -118,12 +135,12 @@ def room_exists(room_id):
     return bool(len(c.fetchall()))
 
 
-DBReview = namedtuple("DBReview", ("review_id", "room_id", "summary", "date", "text"))
+DBReview = namedtuple("DBReview", ("review_id", "room_id", "summary", "date", "text", "username"))
 def render_admin_page(username, message=None):
 
     d = get_db()
     c = d.cursor()
-    c.execute("SELECT id,room_id,summary,date,text FROM Reviews WHERE approved=0")
+    c.execute("SELECT id,room_id,summary,date,text,username FROM Reviews WHERE approved=0")
 
     reviews = [DBReview(*r) for r in c.fetchall()]
 
@@ -175,9 +192,9 @@ def sanitize(text):
     
 @app.route("/",methods=["GET","POST"])
 def review():
-    if request.remote_user:
-        username = request.remote_user.name
-    else:
+    #print("Request from host", request.host)
+    username = get_remote_user(request)
+    if username is None:
         username = "Anonymous"
 
     if request.method == "POST":
@@ -205,12 +222,9 @@ def review():
 
 @app.route("/adm", methods=["GET", "POST"])
 def admin():
-    if is_admin(request.remote_user):
-        if DEBUG and not request.remote_user:
-            print("DEBUG - no remote user")
-            username = "DEBUG"
-        else:
-            username = request.remote_user.name
+    user = get_remote_user(request)
+    if is_admin(user):
+        username = user
     else:
         return "You are not an admin.", 403
 
