@@ -1,0 +1,105 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--<link rel="stylesheet" type="text/css" href="/style.css">-->
+	<style>
+body{ 
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 0 5px;
+	font-family: sans-serif;
+}
+section{
+	border-radius: 5px;
+	padding: 15px;
+	margin-bottom: 10px;
+}
+
+textarea {
+	width: 100%;
+	font: inherit;
+	resize: vertical;
+}
+button {
+	width: 100%;
+	appearance: none;
+	color: white;
+	background: darkblue;
+	border-radius: 5px;
+	font: inherit;
+	padding: 20px;
+}
+
+.question-box {
+  border: 1px solid #ccc;
+  border-bottom: 2px solid gray;
+  padding: 0 15px 15px 15px;
+  margin: 10px auto;
+  border-radius: 5px;
+}
+.question {
+  font-weight: bold;
+}
+.multichoice-answer {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  background: #eee;
+}
+.multichoice-answer input {
+  appearance: none;
+  border: 2px solid #ccc;
+  width: 13px;
+  height: 26px;
+  color: black;
+  margin: 0;
+  flex-grow: 0;
+  border-radius: 0 13px 13px 0;
+  flex-shrink: 0;
+  border-left-width: 0;
+}
+.multichoice-answer input:checked {
+  background: darkblue;
+  border-color: darkblue;
+}
+
+.multichoice-answer label{
+  display: block;
+  flex-grow: 1;
+  padding: 20px 10px;
+}
+	</style>
+	<title>Admin | Peterhouse Room Reviews</title>
+</head>
+<body>
+<h1> Room review admin page </h1>
+<h2> Logged in as {{ username }}</h2>
+{% if message %}
+<div id="messagebox">
+<p> {{ message }}</p>
+</div>
+{% endif %}
+<p> Approved reviews will appear on the site when the site is updated (approx daily)</p>
+<p> {{ reviews|length }} review(s) awaiting approval.</p>
+<p> <strong> Currently there is no way to delete a rejected review from this page, it will just stay in the inbox until manually deleted from the database.</strong></p>
+{% if reviews|length > 0 %}
+<form method='POST'>
+	<button type="submit"> Approve selected reviews</button>
+	{% for review in reviews %}
+	<div class='reviewbox'>
+		<h3> [{{review.review_id}}] {{ review.date }}: {{ review.room_id }} &ndash; {{review.summary}} </h3>
+	<div class='approvebox'>
+	<input type='checkbox' name='{{review.review_id}}' value='1'>
+	<label for='{{review.review_id}}'> Approve this review </label>
+	</div>
+		{% for para in review.text %}
+		<p> {{para}}</p>
+		{%endfor%}
+	{% endfor %}
+	</div>
+{%endif%}
+</form>
+</body>

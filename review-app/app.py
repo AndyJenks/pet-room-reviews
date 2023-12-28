@@ -1,0 +1,221 @@
+# app.py - (C) Andrew Jenkins 2022-23
+# Flask web app to accept and approve room reviews.
+
+import os
+import random
+import sys
+from datetime import datetime
+from collections import namedtuple
+
+import questions
+
+try:
+    import MySQLdb
+except ImportError:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+
+from flask import Flask, request, render_template, redirect, url_for, session, g
+from werkzeug.exceptions import NotFound, Forbidden
+
+import config # secrets! defines DB_USER, DB_PASSWORD, DB_DATABASE
+
+app = Flask(__name__)
+
+app.secret_key = config.APP_KEY
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
+          "August", "September", "October", "November", "December"]
+
+
+DEBUG = True
+
+# TODO: Add cost question with extended checkbox
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        print("creating database connection")
+        db = g._database = MySQLdb.connect(user=config.DB_USER, passwd=config.DB_PASSWORD, db=config.DB_DATABASE)
+
+    return db
+
+def get_csrf_token():
+    return secrets.token_urlsafe()
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        print("closing database")
+        db.close()
+
+
+def can_submit_review(user):
+    ## TODO: check user is allowed to leave a review (is current student/was petrean)
+    return True
+
+
+def is_admin(user):
+    # for the moment it's necessary to add users manually to the RoomReviewAdmins table in the database.
+    d = get_db()
+    c = d.cursor()
+
+    c.execute("SELECT name FROM RoomReviewAdmins")
+    admins = [i[0] for i in c.fetchall()]
+
+    print("admins:", admins)
+
+    return user in admins or DEBUG
+
+
+def store_review(user, room, summary, text, timestamp, multichoice=None):
+    # N.B. This function does NOT check that the review is allowed to be
+    # submitted or that the data is valid/sanitized
+
+    d = get_db()
+    c = d.cursor()
+
+    c.execute("INSERT INTO Reviews(username, date, room_id, summary, text) VALUES (%s, %s, %s, %s, %s)", (user, timestamp, room, summary, text))
+    review_id = c.lastrowid
+    if multichoice:
+        # create a copy of the dict so that a review_id entry can be
+        # added to this one.
+        qa1 = {q: a for q, a in multichoice.items()}
+        qa1["review_id"] = review_id
+        # this trusts the question ids not to contain sql injection
+        # (since we created them) but not the answers given.
+        c.execute("UPDATE Reviews SET {} WHERE id=%(review_id)s".format(",".join("{0}=%({0})s".format(name) for name in multichoice)), qa1)
+
+    d.commit()
+
+def clean_multichoice(formdata):
+    output = {}
+    # question id, question text, answers
+    for q, qq, a in questions.multi_choice:
+        val = formdata.get(q)
+        try:
+            iv = int(val)
+            # TODO: a better mapping between the question and answer.
+            # What if we change the questions, for example?
+
+            # the output is the index of the question if and only if that index is valid.
+            output[q] = iv if iv < len(a) else None
+
+        except (ValueError,TypeError):
+            output[q] = None
+
+
+    return output
+
+def room_exists(room_id):
+    if room_id is None:
+        return False
+
+    d = get_db()
+    c = d.cursor()
+
+    c.execute("SELECT id FROM Rooms WHERE abbr=%s", (room_id,))
+    return bool(len(c.fetchall()))
+
+
+DBReview = namedtuple("DBReview", ("review_id", "room_id", "summary", "date", "text"))
+def render_admin_page(username, message=None):
+
+    d = get_db()
+    c = d.cursor()
+    c.execute("SELECT id,room_id,summary,date,text FROM Reviews WHERE approved=0")
+
+    reviews = [DBReview(*r) for r in c.fetchall()]
+
+    for i,r in enumerate(reviews):
+        paras = [l.strip() for l in sanitize(r.text).split("\n")]
+        reviews[i] = r._replace(text=(paras))
+    
+    return render_template("adminpage.htm", username=username, reviews=reviews, message=message)
+
+def check_approve_form(username, form):
+    print(form)
+
+    # which ones are actually not approved yet?
+
+    d = get_db()
+    c = d.cursor()
+    c.execute("SELECT id, room_id FROM Reviews WHERE approved=0")
+
+    ids = [(i[0]) for i in c.fetchall()]
+
+    to_approve = []
+    for i in ids:
+        if form.get(str(i))=="1":
+            to_approve.append((i,)) 
+
+    for i in to_approve:
+        c.executemany("UPDATE Reviews SET approved=1 WHERE id=%s", to_approve)
+    d.commit()
+
+    
+    return render_admin_page(username, message="Approved {} reviews".format(len(to_approve)))
+
+
+
+def sanitize(text):
+    if text is None:
+        return None
+    else:
+        # thank you to https://stackoverflow.com/a/11550901
+        escapes = {#'\"': '&quot;',
+                   #'\'': '&#39;',
+                   '<': '&lt;',
+                   '>': '&gt;'}
+        text = text.replace("&", "&amp;")
+        for seq, esc in escapes.items():
+            text = text.replace(seq, esc)
+        return text
+
+    
+@app.route("/",methods=["GET","POST"])
+def review():
+    if request.remote_user:
+        username = request.remote_user.name
+    else:
+        username = "Anonymous"
+
+    if request.method == "POST":
+        if not can_submit_review(username):
+            return "User not authorised to submit review. Are you a Petrean?"
+        room = sanitize(request.form.get("room"))
+        if (not room) or not room_exists((room)):
+            return "No room or invalid room specified. The room was {}. This is probably a bug -- contact the admin.".format(repr(room))
+
+        summary = sanitize(request.form.get("summary"))
+        if not summary:
+            return "Fail: no summary/title was given"
+        if "text" in request.form:
+            body = sanitize(request.form["text"])
+        else:
+            body = None
+
+        ts = datetime.now()
+        multichoice = clean_multichoice(request.form)
+        store_review(username, room, summary, body, ts, multichoice)
+        return "Room review has been saved and will be reviewed by page admin"
+    else:
+        room_id = request.args.get("room")
+        return render_template("form.htm", room_id=room_id, username=username, room_name=room_id)
+
+@app.route("/adm", methods=["GET", "POST"])
+def admin():
+    if is_admin(request.remote_user):
+        if DEBUG and not request.remote_user:
+            print("DEBUG - no remote user")
+            username = "DEBUG"
+        else:
+            username = request.remote_user.name
+    else:
+        return "You are not an admin.", 403
+
+    if request.method == "POST":
+        return check_approve_form(username, request.form)
+    else:
+        return render_admin_page(username)
+

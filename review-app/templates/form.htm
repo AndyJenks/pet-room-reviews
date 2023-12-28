@@ -1,0 +1,268 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--<link rel="stylesheet" type="text/css" href="/style.css">-->
+	<style>
+body{ 
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 0 5px;
+	font-family: sans-serif;
+}
+section{
+	border-radius: 5px;
+	padding: 15px;
+	margin-bottom: 10px;
+}
+
+textarea {
+	width: 100%;
+	font: inherit;
+	resize: vertical;
+}
+button {
+	width: 100%;
+	appearance: none;
+	color: white;
+	background: darkblue;
+	border-radius: 5px;
+	font: inherit;
+	padding: 20px;
+}
+
+.question-box {
+  border: 1px solid #ccc;
+  border-bottom: 2px solid gray;
+  padding: 0 15px 15px 15px;
+  margin: 10px auto;
+  border-radius: 5px;
+}
+.question {
+  font-weight: bold;
+}
+.multichoice-answer {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  background: #eee;
+}
+.multichoice-answer input {
+  appearance: none;
+  border: 2px solid #ccc;
+  width: 13px;
+  height: 26px;
+  color: black;
+  margin: 0;
+  flex-grow: 0;
+  border-radius: 0 13px 13px 0;
+  flex-shrink: 0;
+  border-left-width: 0;
+}
+.multichoice-answer input:checked {
+  background: darkblue;
+  border-color: darkblue;
+}
+
+.multichoice-answer label{
+  display: block;
+  flex-grow: 1;
+  padding: 20px 10px;
+}
+	</style>
+	<title>Submit | Peterhouse Room Reviews</title>
+</head>
+<h1> Room review submission </h1>
+<h2> {{ username }} submitting a review for {{ room_name }} </h2>
+<p> Your crsid will not be made public but is visible to the site admin.</p>
+<form method='POST'>
+	<div id='summarybox' class='question-box'>
+		<label for='summary'> <p class="question">How would you summarise the room in a few (&lt;25) words? </p> <p class="explanation"> This will be the title of your review when it appears on the site.</p></label>
+		<textarea id='summary' name='summary' required></textarea>
+	</div>
+<div id='noise_day' class='question-box'>
+<p class='question'> How much noise from the street and the rest of the house can you hear from your room in the day? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_day0' name='noise_day' value='0'>
+	<label for='noise_day0'> Quiet</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_day1' name='noise_day' value='1'>
+	<label for='noise_day1'> Occasional noise</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_day2' name='noise_day' value='2'>
+	<label for='noise_day2'> Constant noise</label>
+	</div>
+</div>
+<div id='noise_night' class='question-box'>
+<p class='question'> How often does noise at night get loud enough to disturb someone's sleep? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_night0' name='noise_night' value='0'>
+	<label for='noise_night0'> Never</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_night1' name='noise_night' value='1'>
+	<label for='noise_night1'> Rarely</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_night2' name='noise_night' value='2'>
+	<label for='noise_night2'> Occasionally</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='noise_night3' name='noise_night' value='3'>
+	<label for='noise_night3'> Frequently</label>
+	</div>
+</div>
+<div id='temperature' class='question-box'>
+<p class='question'> What is the temperature like in your room? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='temperature0' name='temperature' value='0'>
+	<label for='temperature0'> Comfortable (easily adjusted with windows and radiator)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='temperature1' name='temperature' value='1'>
+	<label for='temperature1'> Too warm (even with windows open and heating off)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='temperature2' name='temperature' value='2'>
+	<label for='temperature2'> Too cold (even with heating)</label>
+	</div>
+</div>
+<div id='daylight' class='question-box'>
+<p class='question'> How much natural light does your room get on an average day? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='daylight0' name='daylight' value='0'>
+	<label for='daylight0'> Little (need lights on for reading or writing)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='daylight1' name='daylight' value='1'>
+	<label for='daylight1'> Normal</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='daylight2' name='daylight' value='2'>
+	<label for='daylight2'> A lot (due to extra large windows, facing the sun, etc)</label>
+	</div>
+</div>
+<div id='storage' class='question-box'>
+<p class='question'> How much storage space is there? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='storage0' name='storage' value='0'>
+	<label for='storage0'> Less than standard</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='storage1' name='storage' value='1'>
+	<label for='storage1'> Standard (wardrobe, chest of drawers, desk and bedside table drawers)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='storage2' name='storage' value='2'>
+	<label for='storage2'> More than standard</label>
+	</div>
+</div>
+<div id='gyp_facilities' class='question-box'>
+<p class='question'> What facilities are there in the kitchen/gyp you normally use? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_facilities0' name='gyp_facilities' value='0'>
+	<label for='gyp_facilities0'> Kettle, toaster, microwave. Enough to make a snack but not a proper meal.</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_facilities1' name='gyp_facilities' value='1'>
+	<label for='gyp_facilities1'> There is a hob but it doesn't work very well.</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_facilities2' name='gyp_facilities' value='2'>
+	<label for='gyp_facilities2'> There is a hob that works well.</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_facilities3' name='gyp_facilities' value='3'>
+	<label for='gyp_facilities3'> There is more than one hob or other extra appliances (e.g. oven, freezer...)</label>
+	</div>
+</div>
+<div id='gyp_cupboard' class='question-box'>
+<p class='question'> How much cupboard space is there in the kitchen/gyp you normally use? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_cupboard0' name='gyp_cupboard' value='0'>
+	<label for='gyp_cupboard0'> Less than standard</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_cupboard1' name='gyp_cupboard' value='1'>
+	<label for='gyp_cupboard1'> Standard (one cupboard per person)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='gyp_cupboard2' name='gyp_cupboard' value='2'>
+	<label for='gyp_cupboard2'> More than standard</label>
+	</div>
+</div>
+<div id='bike_storage' class='question-box'>
+<p class='question'> Is there a secure space for storing bicycles near your building? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='bike_storage0' name='bike_storage' value='0'>
+	<label for='bike_storage0'> No, there isn't (chained to railings or street side stands).</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='bike_storage1' name='bike_storage' value='1'>
+	<label for='bike_storage1'> Yes, there is dedicated space but is easily accessed by the public (not secure).</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='bike_storage2' name='bike_storage' value='2'>
+	<label for='bike_storage2'> Yes, there is a shed or a private yard (e.g. SPT, WSB).</label>
+	</div>
+</div>
+<div id='room_view' class='question-box'>
+<p class='question'> How would you describe the view from your window? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_view0' name='room_view' value='0'>
+	<label for='room_view0'> Not ideal (basement, yard, wall-facing, etc)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_view1' name='room_view' value='1'>
+	<label for='room_view1'> Standard (street, college court or other buildings)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_view2' name='room_view' value='2'>
+	<label for='room_view2'> Scenic (greenery, church tower, horizon, etc)</label>
+	</div>
+</div>
+<div id='room_condition' class='question-box'>
+<p class='question'> How would you describe the general state of the furnishings in your room? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_condition0' name='room_condition' value='0'>
+	<label for='room_condition0'> Run down (squeaky floor, drafty window, many marks on wall and furniture or peeling paint)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_condition1' name='room_condition' value='1'>
+	<label for='room_condition1'> Standard (minor damage from age but not significant)</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='room_condition2' name='room_condition' value='2'>
+	<label for='room_condition2'> Excellent (recently refurbished in the last 5 years or so)</label>
+	</div>
+</div>
+<div id='laundry' class='question-box'>
+<p class='question'> How far is the nearest washing machine you can use? </p>
+	<div class='multichoice-answer'>
+	<input type='radio' id='laundry0' name='laundry' value='0'>
+	<label for='laundry0'> In the same building</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='laundry1' name='laundry' value='1'>
+	<label for='laundry1'> In a different building but close by</label>
+	</div>
+	<div class='multichoice-answer'>
+	<input type='radio' id='laundry2' name='laundry' value='2'>
+	<label for='laundry2'> More than a building or two away</label>
+	</div>
+</div>
+	<div id='reviewbox' class='question-box'>
+		<label for='review'> <p class="question"> Optionally, write a
+			textual review here.</p>
+			<p class="explanation">As you've hopefully seen, these
+			can be a fun way to give other Petreans a feel for what
+			the room is like.</p></label>
+		<textarea id='review' name='text' rows='5'></textarea>
+	</div>
+	<button type="submit"> Submit my review </button>
+	<input type='hidden' name='room' value='{{ room_id }}'>
+</form>
