@@ -31,6 +31,12 @@ button {
 	padding: 20px;
 }
 
+.reviewbox {
+	border: 2px solid gray;
+	margin: 10px;
+	padding: 10px;
+}
+
 .question-box {
   border: 1px solid #ccc;
   border-bottom: 2px solid gray;
@@ -98,8 +104,8 @@ button {
 		{% for para in review.text %}
 		<p> {{para}}</p>
 		{%endfor%}
-	{% endfor %}
 	</div>
+	{% endfor %}
 {%endif%}
 </form>
 </body>
