@@ -16,6 +16,7 @@ PAGE_TEMPLATE = """<!doctype html>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="Andy's ad-hoc static site generator">
+    <link rel="icon" href="favicon.ico">
 	<style>
 body{{
 	max-width: 800px;
