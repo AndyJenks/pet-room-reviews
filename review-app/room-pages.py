@@ -87,7 +87,8 @@ def format_review(r):
 Review = namedtuple("Review", ("room_id", "summary", "date", "text", "scores", "qa"))
 def reviews_for_room(r_id):
     c = db.cursor(MySQLdb.cursors.DictCursor)
-    c.execute("SELECT * from Reviews WHERE room_id=%s ORDER BY date DESC", (r_id,))
+    # only take approved reviews
+    c.execute("SELECT * from Reviews WHERE room_id=%s AND approved=1 ORDER BY date DESC", (r_id,))
     # these will be dicts
     records = c.fetchall()
     reviews = []
