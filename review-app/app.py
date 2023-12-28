@@ -1,6 +1,8 @@
 # app.py - (C) Andrew Jenkins 2022-23
 # Flask web app to accept and approve room reviews.
 
+# The reviews themselves are hosted on static pages, which must be updated from time to time.
+
 import os
 import random
 import sys

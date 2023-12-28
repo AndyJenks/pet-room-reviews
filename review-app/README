@@ -1,0 +1,26 @@
+ROOM REVIEW APP
+===============
+
+This is designed (I use the word loosely) as a static site
+with a Flask app for the bits which can't be done statically.
+
+Prereqs:
+Some way to run Flask web apps
+Mysql
+Python MySQLdb or pymysql module
+
+How to set up
+
+1. Set up the database. You can use review_setup_db for this.
+2. Insert any pre-existing data into the database.
+3. Update config.py with your own database credentials
+4. Create a target folder in public_html with a 'rooms' subfolder
+5. Edit update.sh to point to this target folder, and generate the room files.
+6. Use homepage.py to generate the homepage
+7. Set up the .htaccess to require Raven for access and login in the target folder.
+8. Set up the web app. I used the example run-python.sh script from /public/societies/sample/, and a .htaccess in the root of public_html/ to set a request header with the value of $REMOTE_USER, as well as forwarding the requests to a socket. Refer to https://docs.srcf.net/reference/web-hosting/web-applications/. I did the systemd option
+9. Add update.sh to your crontab to update the files regularly.
+
+Note you will need to update the homepage manually - but cron mail should remind you of this fact.
+
+Andrew Jenkins 2023-12-28
