@@ -96,7 +96,7 @@ button {
 	<button type="submit"> Approve selected reviews</button>
 	{% for review in reviews %}
 	<div class='reviewbox'>
-		<h3> [{{review.review_id}}] {{ review.date }}: {{ review.room_id }} &ndash; {{review.summary}} </h3>
+		<h3> [{{review.review_id}}][{{review.username}}] {{ review.date }}: {{ review.room_id }} &ndash; {{review.summary}} </h3>
 	<div class='approvebox'>
 	<input type='checkbox' name='{{review.review_id}}' value='1'>
 	<label for='{{review.review_id}}'> Approve this review </label>
