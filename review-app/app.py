@@ -27,7 +27,7 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
 
 
-DEBUG = True
+DEBUG = False
 
 # TODO: Add cost question with extended checkbox
 
