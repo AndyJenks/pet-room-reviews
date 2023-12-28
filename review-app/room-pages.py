@@ -142,16 +142,20 @@ for r in rooms:
     page = TEMPLATE.format(room=r,
             reviews=review_txt)
     updated = False
-    with open(fname) as f:
-        text = f.read()
-        if text != page:
-            updated = True
-            print(fname, "updated")
-            for i, (a, b) in enumerate(zip(text.splitlines(), page.splitlines())):
-                if a!= b:
-                    print("diff on line", i+1)
-                    print(a,"|", b)
-                    break
+    if os.path.exists(fname):
+        with open(fname) as f:
+            text = f.read()
+            if text != page:
+                updated = True
+                print(fname, "updated")
+                for i, (a, b) in enumerate(zip(text.splitlines(), page.splitlines())):
+                    if a!= b:
+                        print("diff on line", i+1)
+                        print(a,"|", b)
+                        break
+    else:
+        updated = True
+        print(fname, "new")
 
     # only update the files which need updating
     if updated:
