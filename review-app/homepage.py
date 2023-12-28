@@ -1,4 +1,14 @@
-import MySQLdb
+# homepage.py - (C) Andrew Jenkins 2022-23
+# Generate the homepage for the room review site
+
+try:
+    import MySQLdb
+except ImportError:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+    import MySQLdb
+
+
 import config
 
 PAGE_TEMPLATE = """<!doctype html>
@@ -77,29 +87,48 @@ STAIRCASE_TEMPLATE = """    <h3 id='{abbr}'>{longname}</h3>
 """
 ROOM_TEMPLATE = """        <li><a href='rooms/{room_id}.html'>{room_id}</a>{set}{ensuite}</li>"""
 
-db = MySQLdb.connect(user=config.DB_USER, passwd=config.DB_PASSWORD, db=config.DB_DATABASE)
-cursor = db.cursor()
-# first check that all the staircases exist
+def generate_homepage():
+    db = MySQLdb.connect(user=config.DB_USER, passwd=config.DB_PASSWORD, db=config.DB_DATABASE)
+    cursor = db.cursor()
+    # first check that all the staircases exist
 
-cursor.execute("SELECT abbr, name FROM Staircases ORDER BY id")
+    cursor.execute("SELECT abbr, name FROM Staircases ORDER BY id")
 
-staircases = []
-quicklinks = []
-for abbr, name in cursor.fetchall():
-    rooms = []
-    cursor.execute("SELECT abbr, doubleset, ensuite FROM Rooms WHERE staircase=%s ORDER BY sortby", (abbr,))
-    for r_id, doubleset, ensuite in cursor.fetchall():
-        rooms.append(ROOM_TEMPLATE.format(room_id=r_id, 
-            set=" <span class=\"set-indicator\">(SET)</span>" if doubleset else "",
-            ensuite = " <span class=\"ensuite-indicator\">(En-suite)</span>" if ensuite else ""))
-    staircases.append(STAIRCASE_TEMPLATE.format(abbr=abbr, longname=name, rooms="\n".join(rooms)))
-    quicklinks.append(QUICKLINK_TEMPLATE.format(abbr=abbr, longname=name))
+    staircases = []
+    quicklinks = []
+    for abbr, name in cursor.fetchall():
+        rooms = []
+        cursor.execute("SELECT abbr, doubleset, ensuite FROM Rooms WHERE staircase=%s ORDER BY sortby", (abbr,))
+        for r_id, doubleset, ensuite in cursor.fetchall():
+            rooms.append(ROOM_TEMPLATE.format(room_id=r_id, 
+                set=" <span class=\"set-indicator\">(SET)</span>" if doubleset else "",
+                ensuite = " <span class=\"ensuite-indicator\">(En-suite)</span>" if ensuite else ""))
+        staircases.append(STAIRCASE_TEMPLATE.format(abbr=abbr, longname=name, rooms="\n".join(rooms)))
+        quicklinks.append(QUICKLINK_TEMPLATE.format(abbr=abbr, longname=name))
 
-# Are there any rooms which are not appearing on the home page just because there is no name recorded for their staircase?
-cursor.execute("SELECT DISTINCT staircase FROM Rooms WHERE staircase NOT IN (SELECT abbr FROM Staircases)")
-for (staircase,) in cursor.fetchall():
-    print("WARNING: No record in Staircases table for", staircase)
+    # Are there any rooms which are not appearing on the home page just because there is no name recorded for their staircase?
+    cursor.execute("SELECT DISTINCT staircase FROM Rooms WHERE staircase NOT IN (SELECT abbr FROM Staircases)")
+    for (staircase,) in cursor.fetchall():
+        print("WARNING: No record in Staircases table for", staircase)
 
 
-result = PAGE_TEMPLATE.format(quicklinks="\n".join(quicklinks), staircases="".join(staircases))
-print(result)
+    result = PAGE_TEMPLATE.format(quicklinks="\n".join(quicklinks), staircases="".join(staircases))
+    return result
+
+if __name__ == "__main__":
+    from sys import argv
+    homepage_new = generate_homepage()
+    if len(argv) < 2:
+        print(homepage_new, end="")
+    else:
+        # Current homepage passed as argv[1]
+        with open(argv[1]) as cur_f:
+            homepage_current = cur_f.read()#.replace("\r","")
+            if homepage_current != homepage_new:
+                print("Homepage needs update")
+
+                for i, (a, b) in enumerate(zip(homepage_current.splitlines(keepends=True), homepage_new.splitlines(keepends=True))):
+                    if a!= b:
+                        print("diff on line", i+1)
+                        print(a,"|", b)
+                        break

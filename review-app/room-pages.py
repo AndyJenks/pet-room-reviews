@@ -1,16 +1,31 @@
+# room-pages.py - (C) Andrew Jenkins 2022-23
+# Generate the room review pages (static pages)
+
 import datetime
 import os
 
-import MySQLdb
+try:
+    import MySQLdb
+except ImportError:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+    import MySQLdb
 
 from collections import namedtuple
 
 import questions
 import config
 
+from sys import argv
+
 db = MySQLdb.connect(user=config.DB_USER, passwd=config.DB_PASSWORD, db=config.DB_DATABASE)
 
-OUTPUT_DATA = "/home/andrew/Documents/Web/JCR_Room_review/site/rooms"
+try:
+    OUTPUT_DATA = argv[1]
+except IndexError:
+    print("Usage: room-pages.py TARGET_FOLDER")
+    exit(1)
+
 TEMPLATE = """\
 <!doctype html>
 <head>
@@ -44,14 +59,16 @@ REVIEW_FORMAT = """
     {review.text}
 </div>"""
 
+
+DEBUG_REFORMAT = False
 def pformat(s):
-    paras = s.split("\n")
+    paras = s.splitlines()
     return "\n".join(["<p>" + para + "</p>" for para in paras])
 
 
 def format_review(r):
 
-    line_lengths = [len(l) for l in r.text.split("\n") if len(l.strip()) > 0]
+    line_lengths = [len(l) for l in r.text.splitlines() if len(l.strip()) > 0]
     if (len(line_lengths) > 1 and r.date < datetime.date(2014,1,1)):
         txt1 = r.text.replace("\r\n", "\n")
         #print(r.text)
@@ -59,13 +76,14 @@ def format_review(r):
         mean_line_length = sum(line_lengths) / len(line_lengths)
         if (len(line_lengths) and mean_line_length < 80 and
             max(line_lengths) < 100):
-            print("=====\n")
-            print(r.summary)
-            print(r.text)
-            print("^^^^^^^^^^^^^^ WILL REFORMAT ^^^^^^^^^^^^^^^")
+            if DEBUG_REFORMAT:
+                print("=====\n")
+                print(r.summary)
+                print(r.text)
+                print("^^^^^^^^^^^^^^ WILL REFORMAT ^^^^^^^^^^^^^^^")
             thresh = mean_line_length - 10
 
-            lines = txt1.split("\n")
+            lines = txt1.splitlines()
             out = []
             for i,l in enumerate(lines):
                 if i == 0 and l.startswith("This comment is imported"):
@@ -77,7 +95,8 @@ def format_review(r):
                     out.append(l.strip() + " ")
             
             r = r._replace(text="".join(out))
-            print(r.text)
+            if DEBUG_REFORMAT:
+                print(r.text)
 
     if r.date <= datetime.date(2012,7,21):
         r = r._replace(date="2012 or earlier")
@@ -122,5 +141,19 @@ for r in rooms:
     review_txt = "".join([format_review(r) for r in reviews])
     page = TEMPLATE.format(room=r,
             reviews=review_txt)
-    with open(fname, "x") as f:
-        f.write(page)
+    updated = False
+    with open(fname) as f:
+        text = f.read()
+        if text != page:
+            updated = True
+            print(fname, "updated")
+            for i, (a, b) in enumerate(zip(text.splitlines(), page.splitlines())):
+                if a!= b:
+                    print("diff on line", i+1)
+                    print(a,"|", b)
+                    break
+
+    # only update the files which need updating
+    if updated:
+        with open(fname, "w") as f:
+            f.write(page)
