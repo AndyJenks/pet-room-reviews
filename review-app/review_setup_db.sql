@@ -90,6 +90,9 @@ laundry INT,
 n_gyp INT,
 n_shower INT,
 n_toilet INT,
+deleted BOOL DEFAULT 0,
+deleted_date DATE,
+deleted_username VARCHAR(255),
 PRIMARY KEY (id)
 );
 

@@ -91,16 +91,19 @@ button {
 {% endif %}
 <p> Approved reviews will appear on the site when the site is updated (approx daily)</p>
 <p> {{ reviews|length }} review(s) awaiting approval.</p>
-<p> <strong> Currently there is no way to delete a rejected review from this page, it will just stay in the inbox until manually deleted from the database.</strong></p>
 {% if reviews|length > 0 %}
 <form method='POST'>
-	<button type="submit"> Approve selected reviews</button>
+	<button type="submit"> Approve/delete selected reviews</button>
 	{% for review in reviews %}
 	<div class='reviewbox'>
 		<h3> [{{review.review_id}}][{{review.username}}] {{ review.date }}: {{ review.room_id }} &ndash; {{review.summary}} </h3>
 	<div class='approvebox'>
-	<input type='checkbox' name='{{review.review_id}}' value='1'>
-	<label for='{{review.review_id}}'> Approve this review </label>
+	<input type='radio' id='{{review.review_id}}-approve' name='{{review.review_id}}' value='a'>
+	<label for='{{review.review_id}}-approve'> Approve this review </label>
+	<input type='radio' id='{{review.review_id}}-delete' name='{{review.review_id}}' value='d'>
+	<label for='{{review.review_id}}-delete'> Delete this review </label>
+	<input type='radio' id='{{review.review_id}}-pass' name='{{review.review_id}}' value='0' checked>
+	<label for='{{review.review_id}}-pass'> Take no action</label>
 	</div>
 		{% for para in review.text %}
 		<p> {{para}}</p>

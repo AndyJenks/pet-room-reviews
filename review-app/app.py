@@ -142,7 +142,7 @@ def render_admin_page(username, message=None):
 
     d = get_db()
     c = d.cursor()
-    c.execute("SELECT id,room_id,summary,date,text,username FROM Reviews WHERE approved=0")
+    c.execute("SELECT id,room_id,summary,date,text,username FROM Reviews WHERE (approved=0 AND deleted=0)")
 
     reviews = [DBReview(*r) for r in c.fetchall()]
 
@@ -164,16 +164,22 @@ def check_approve_form(username, form):
     ids = [(i[0]) for i in c.fetchall()]
 
     to_approve = []
+    to_delete = []
     for i in ids:
-        if form.get(str(i))=="1":
+        action = form.get(str(i))
+        if action=="a":
             to_approve.append((i,)) 
+        elif action =="d":
+            to_delete.append((i,))
 
-    for i in to_approve:
-        c.executemany("UPDATE Reviews SET approved=1 WHERE id=%s", to_approve)
+    c.executemany("UPDATE Reviews SET approved=1 WHERE id=%s", to_approve)
+    today = datetime.today()
+    for i in to_delete:
+        c.execute("UPDATE Reviews SET deleted=1,deleted_username=%s,deleted_date=%s WHERE id=%s", (username, today,i))
     d.commit()
 
     
-    return render_admin_page(username, message="Approved {} reviews".format(len(to_approve)))
+    return render_admin_page(username, message="Approved {} and deleted {} reviews".format(len(to_approve), len(to_delete)))
 
 
 
