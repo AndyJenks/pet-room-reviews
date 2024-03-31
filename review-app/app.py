@@ -9,6 +9,10 @@ import sys
 from datetime import datetime
 from collections import namedtuple
 
+# Just to check if the person is a Petrean
+import requests
+import urllib.parse
+
 import questions
 
 try:
@@ -21,6 +25,7 @@ except ImportError:
     import MySQLdb
     print("(installed pymysql as MySQLdb)")
 
+
 from flask import Flask, request, render_template, redirect, url_for, session, g
 from werkzeug.exceptions import NotFound, Forbidden
 
@@ -32,8 +37,8 @@ app.secret_key = config.APP_KEY
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
           "August", "September", "October", "November", "December"]
 
-
-DEBUG = False
+# format with user CRSID and institution ID
+LOOKUP_INST_URL = "https://www.lookup.cam.ac.uk/api/v1/person/crsid/{crsid}/is-member-of-inst/{inst}"
 
 # TODO: Add cost question with extended checkbox
 
@@ -69,7 +74,28 @@ def get_remote_user(request):
 
 
 def can_submit_review(user):
-    ## TODO: check user is allowed to leave a review (is current student/was petrean)
+
+    if user is None:
+        print("can_submit_review: bypassing lookup check as user is not logged in")
+        return app.debug # Debug mode will let anyone login
+
+    elif is_admin(user):
+        # If the user is an admin they should be able to post regardless of whether they are a Petrean.
+        return True
+
+    # avoid injection attacks (which shouldn't be a thing anyway since 'user' comes from the Raven auth)
+    u1 = urllib.parse.quote(user)
+    # currently this won't work with postgrads as PETUG is undergrads only.
+    tgt = LOOKUP_INST_URL.format(crsid=u1, inst="PETUG")
+    r = requests.get(tgt)
+
+    # if we try to run this outside the CUDN
+    if r.status_code == 200:
+        return r.text == "true"
+    else:
+        print("can_submit_review: lookup of user '{}' failed - status code {}. May be running outside CUDN?".format(u1, r.status_code))
+        return False
+
     return True
 
 
@@ -84,7 +110,7 @@ def is_admin(user):
     print("admins:", admins)
     print("vs", user)
 
-    return user in admins or DEBUG
+    return user in admins or app.debug
 
 
 def store_review(user, room, summary, text, timestamp, multichoice=None):
@@ -202,12 +228,13 @@ def sanitize(text):
 def review():
     #print("Request from host", request.host)
     username = get_remote_user(request)
+    if not can_submit_review(username):
+        return "Not authorised to submit review. The system currently checks if you are, or were, a Peterhouse undergrad, but does not work for current postgrads."
+
     if username is None:
         username = "Anonymous"
 
     if request.method == "POST":
-        if not can_submit_review(username):
-            return "User not authorised to submit review. Are you a Petrean?"
         room = sanitize(request.form.get("room"))
         if (not room) or not room_exists((room)):
             return "No room or invalid room specified. The room was {}. This is probably a bug -- contact the admin.".format(repr(room))
