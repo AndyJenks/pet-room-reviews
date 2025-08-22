@@ -29,6 +29,10 @@ section{{
 	padding: 15px;
 	margin-bottom: 10px;
 }}
+#staircases-container {{
+    display: flex;
+    flex-wrap: wrap;
+}}
 
 	</style>
 	<title>Peterhouse Room Reviews</title>
@@ -77,14 +81,17 @@ section{{
     {quicklinks}
     </ul>
 	<h2>Staircases / Houses</h2>
+    <div id="staircases-container">
     {staircases}
+    </div>
 </body>
 """
 QUICKLINK_TEMPLATE = """    <li><a href='#{abbr}'>{longname}</a></li>"""
-STAIRCASE_TEMPLATE = """    <h3 id='{abbr}'>{longname}</h3>
+STAIRCASE_TEMPLATE = """    <div class='staircase-list'><h3 id='{abbr}'>{longname}</h3>
         <ul>
 {rooms}
         </ul>
+        </div>
 """
 ROOM_TEMPLATE = """        <li><a href='rooms/{room_id}.html'>{room_id}</a>{set}{ensuite}</li>"""
 

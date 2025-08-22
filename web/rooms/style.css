@@ -1,0 +1,14 @@
+/* Draft stylesheet 2025 for review pages */
+.reviewbox {
+  /*! border: 1px solid cornflowerblue; */
+  border-radius: 5px;
+  padding: 0.1em 1em 1em 1em;
+  margin-block: 2em;
+  /*! background: #f4f8ff; */
+  box-shadow: 0 3px 5px lightgray;
+  background: linear-gradient(-20deg,#ebf4fd, #f0faff);
+}
+
+.reviewbox p {
+  line-height: 1.5
+}

@@ -23,4 +23,6 @@ How to set up
 
 Note you will need to update the homepage manually - but cron mail should remind you of this fact.
 
+Note also: you may want to check your database is set to use UTF-8 by default.
+
 Andrew Jenkins 2023-12-28
