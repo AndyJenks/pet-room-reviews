@@ -9,6 +9,12 @@
   background: linear-gradient(-20deg,#ebf4fd, #f0faff);
 }
 
+.review-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
 .reviewbox p {
   line-height: 1.5
 }

@@ -55,8 +55,10 @@ body{{
 ## with passed Review obj. Bin scores and q&a
 REVIEW_FORMAT = """
 <div class="reviewbox">
-    <h3> {review.date} </h3>
-    <h4> {review.summary} </h3>
+    <div class="review-header">
+        <h4 class="review-summary"> {review.summary} </h3>
+        <h3 class="review-date> {review.date} </h3>
+    </div>
     {review.text}
 </div>"""
 
